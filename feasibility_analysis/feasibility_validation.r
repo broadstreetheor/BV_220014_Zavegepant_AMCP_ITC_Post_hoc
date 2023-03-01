@@ -4,7 +4,7 @@ library(tidyverse)
 project_dir <- "Z:/Shared/Projects/Biohaven/BV_220014 Zavegepant AMCP, ITC, & Post-hoc/"
 dat_dir <- paste0(project_dir, "Indirect treatment comparison/")
 out_dir <- paste0(project_dir, "Indirect treatment comparison/feasibility assesment/")
-file_name <- "ITC data extraction sheet nasal therapies combined v0.9 PJ.xlsx"
+file_name <- "ITC data extraction sheet nasal therapies combined v0.9 PJ SW.xlsx"
 
 # source(paste0(main_dir, "Analysis/R code/00_functions.R"))
 
@@ -40,42 +40,42 @@ PC <- readxl::read_xlsx(
   col_names = as.character(PC_names)
 )
 
-warnings() %>% 
-  names() %>% 
-  str_remove(
-    pattern = "Expecting "
-  ) %>% 
-  str_remove(
-    pattern = " got "
-  ) %>% 
-  str_remove_all(
-    pattern = "\'"
-  ) %>% 
-  str_replace(
-    pattern = " in ",
-    replacement = ":"
-  ) %>% 
-  str_split_fixed(
-    pattern = ":",
-    n = 3
-  ) %>% 
-  as_tibble() %>% 
-  mutate(
-    V2 = V2 %>% 
-      str_remove(
-        pattern = " / .*"
-      )
-  ) %>% 
-  select(
-    cell = V2,
-    expecting = V1,
-    current_value = V3
-  ) %>% 
-  write.table(
-    "clipboard",
-    sep = "\t",
-    row.names = FALSE
-  )
+# warnings() %>% 
+#   names() %>% 
+#   str_remove(
+#     pattern = "Expecting "
+#   ) %>% 
+#   str_remove(
+#     pattern = " got "
+#   ) %>% 
+#   str_remove_all(
+#     pattern = "\'"
+#   ) %>% 
+#   str_replace(
+#     pattern = " in ",
+#     replacement = ":"
+#   ) %>% 
+#   str_split_fixed(
+#     pattern = ":",
+#     n = 3
+#   ) %>% 
+#   as_tibble() %>% 
+#   mutate(
+#     V2 = V2 %>% 
+#       str_remove(
+#         pattern = " / .*"
+#       )
+#   ) %>% 
+#   select(
+#     cell = V2,
+#     expecting = V1,
+#     current_value = V3
+#   ) %>% 
+#   write.table(
+#     "clipboard",
+#     sep = "\t",
+#     row.names = FALSE
+#   )
 
 
 
@@ -96,11 +96,12 @@ PC %>%
   count(
     treatment
   ) %>% 
-  write.table(
-    "clipboard",
-    sep = "\t",
-    row.names = FALSE
-  )
+  view()
+  # write.table(
+  #   "clipboard",
+  #   sep = "\t",
+  #   row.names = FALSE
+  # )
 
 PC %>% 
   filter(
