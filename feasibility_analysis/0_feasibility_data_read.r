@@ -2,7 +2,7 @@ library(tidyverse)
 
 project_dir <- "Z:/Shared/Projects/Biohaven/BV_220014 Zavegepant AMCP, ITC, & Post-hoc/"
 dat_dir <- paste0(project_dir, "Indirect treatment comparison/")
-file_name <- "ITC data extraction sheet nasal therapies combined v0.9 PJ SW.xlsx"
+file_name <- "ITC data extraction sheet nasal therapies combined v0.10 PJ.xlsx"
 
 
 ## Patient characteristics ####
@@ -76,13 +76,7 @@ dat_pc_raw <- readxl::read_xlsx(
 
 ### Clean the data ####
 
-dat_pc <- dat_pc_raw %>% 
-  mutate(
-    treatment = case_when(
-      treatment == "Sumatriptan containing 1-O-n-dodecyl-β-D-maltopyranoside 0.2% (DFN-02)" ~ "Sumatriptan- DFN-02 0.20% DDM",
-      TRUE ~ treatment
-    )
-  )
+dat_pc <- dat_pc_raw
 
 rm(
   dat_pc_raw,
@@ -113,7 +107,6 @@ co_classes <- dat_co_raw[1,]
 
 ## Read the data and assign names and classes ####
 
-# PC <- data.frame(read_xlsx(paste0(dat_dir, file_name), sheet = "Patient characteristics", skip = 5, col_names = F, col_types = as.character(PC_classes)), stringsAsFactors = FALSE)
 dat_co_raw <- readxl::read_xlsx(
   path = paste0(dat_dir, file_name), 
   sheet = "Clinical outcomes NMA only", 
@@ -123,37 +116,37 @@ dat_co_raw <- readxl::read_xlsx(
   col_names = as.character(co_names)
 )
 
-# warnings() %>% 
-#   names() %>% 
+# warnings() %>%
+#   names() %>%
 #   str_remove(
 #     pattern = "Expecting "
-#   ) %>% 
+#   ) %>%
 #   str_remove(
 #     pattern = " got "
-#   ) %>% 
+#   ) %>%
 #   str_remove_all(
 #     pattern = "\'"
-#   ) %>% 
+#   ) %>%
 #   str_replace(
 #     pattern = " in ",
 #     replacement = ":"
-#   ) %>% 
+#   ) %>%
 #   str_split_fixed(
 #     pattern = ":",
 #     n = 3
-#   ) %>% 
-#   as_tibble() %>% 
+#   ) %>%
+#   as_tibble() %>%
 #   mutate(
-#     V2 = V2 %>% 
+#     V2 = V2 %>%
 #       str_remove(
 #         pattern = " / .*"
 #       )
-#   ) %>% 
+#   ) %>%
 #   select(
 #     cell = V2,
 #     expecting = V1,
 #     current_value = V3
-#   ) %>% 
+#   ) %>%
 #   write.table(
 #     "clipboard",
 #     sep = "\t",
@@ -163,11 +156,8 @@ dat_co_raw <- readxl::read_xlsx(
 ### Clean the data ####
 
 dat_co <- dat_co_raw %>% 
-  mutate(
-    treatment = case_when(
-      treatment == "Sumatriptan containing 1-O-n-dodecyl-β-D-maltopyranoside 0.2% (DFN-02)" ~ "Sumatriptan- DFN-02 0.20% DDM",
-      TRUE ~ treatment
-    )
+  select(
+    !starts_with("delete")
   )
 
 rm(
@@ -178,17 +168,7 @@ rm(
 
 
 
-# This first part is to get the names and classes of the columns
-CO <- data.frame(read_xlsx(paste0(dat_dir, file_name), sheet = "Clinical outcomes", skip = 3, col_names = F), stringsAsFactors = FALSE)
-CO_names <- CO[1,]
-CO_classes <- CO[2,]
 
-# Then we reread in with the proper classes and define the names
-CO <- data.frame(read_xlsx(paste0(dat_dir, file_name), sheet = "Clinical outcomes", skip = 5, col_names = F, col_types = as.character(CO_classes)), stringsAsFactors = FALSE)
-names(CO) <- CO_names
-
-#Remove column where name is 'delete'
-CO <- CO[, names(CO) != "delete"]
 
 #Prep full treatment variable
 #Some incorrect spelling
