@@ -5,6 +5,9 @@ project_dir <- "Z:/Shared/Projects/Biohaven/BV_220014 Zavegepant AMCP, ITC, & Po
 code_dir <- paste0(project_dir, "Analysis/R code/BV_220014_Zavegepant_AMCP_ITC_Post_hoc/feasibility_analysis/")
 out_dir <- paste0(project_dir, "Indirect treatment comparison/feasibility assesment/")
 
+## Read Evan's functions
+source("Z:/Shared/Projects/Pfizer/PF_220163 Acute model updates, SLR, and NMA/SLR & NMA/Analysis/R code/00_functions.R")
+
 
 ## Read data ####
 
@@ -15,20 +18,13 @@ source(paste0(code_dir, "0_feasibility_data_read.r"))
 
 ### Check data ####
 
-
 #### Treatment ####
-PC %>% 
+dat_pc %>% 
   count(
     treatment
-  ) %>% 
-  view()
-  # write.table(
-  #   "clipboard",
-  #   sep = "\t",
-  #   row.names = FALSE
-  # )
+  )
 
-PC %>% 
+dat_pc %>% 
   filter(
     is.na(treatment)
   )

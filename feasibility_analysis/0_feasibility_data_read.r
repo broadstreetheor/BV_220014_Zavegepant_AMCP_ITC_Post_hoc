@@ -2,7 +2,7 @@ library(tidyverse)
 
 project_dir <- "Z:/Shared/Projects/Biohaven/BV_220014 Zavegepant AMCP, ITC, & Post-hoc/"
 dat_dir <- paste0(project_dir, "Indirect treatment comparison/")
-file_name <- "ITC data extraction sheet nasal therapies combined v0.10 PJ.xlsx"
+file_name <- "ITC data extraction sheet nasal therapies combined v0.11 SW.xlsx"
 
 
 ## Patient characteristics ####
@@ -102,7 +102,11 @@ dat_co_raw <- readxl::read_xlsx(
   )
 
 co_names <- dat_co_raw[2,]
-co_classes <- dat_co_raw[1,]
+co_classes <- dat_co_raw[1,] %>% 
+  str_replace(
+    pattern = "character",
+    replacement = "text"
+  )
 
 
 ## Read the data and assign names and classes ####
@@ -165,23 +169,3 @@ rm(
   co_names,
   co_classes
 )
-
-
-
-
-
-#Prep full treatment variable
-#Some incorrect spelling
-CO$treatment[CO$treatment %in% c("Lasmiditin", "Lasmitidan", "lasmiditan")] <- "Lasmiditan"
-CO$treatment[CO$treatment %in% c("rimegepant")] <- "Rimegepant"
-CO$treatment[CO$treatment %in% c("ubrogepant")] <- "Ubrogepant"
-
-#Fix doses
-CO$dose <- gsub("mg", "", CO$dose)
-
-CO <- CO %>% mutate(treatment = ifelse(treatment %in% c("Placebo", "--", NA), treatment, paste0(treatment, " ", dose)),
-                    node = gsub("Lasmiditan", "LAS" , treatment),
-                    node = gsub("Ubrogepant", "UBRO", node),
-                    node = gsub("Rimegepant", "RIM" , node),
-                    node = gsub("Placebo"   , "PBO" , node)) %>%
-  filter(treatment %in% trts_of_int) #Subset only to nodes of interest
