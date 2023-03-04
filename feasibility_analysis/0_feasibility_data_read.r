@@ -76,7 +76,12 @@ dat_pc_raw <- readxl::read_xlsx(
 
 ### Clean the data ####
 
-dat_pc <- dat_pc_raw
+dat_pc <- dat_pc_raw %>% 
+  mutate(
+    # node = case_when(
+    #   
+    # )
+  )
 
 rm(
   dat_pc_raw,
