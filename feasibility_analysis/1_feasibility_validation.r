@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(data.table)
 
 project_dir <- "Z:/Shared/Projects/Biohaven/BV_220014 Zavegepant AMCP, ITC, & Post-hoc/"
 code_dir <- paste0(project_dir, "Analysis/R code/BV_220014_Zavegepant_AMCP_ITC_Post_hoc/feasibility_analysis/")
@@ -434,7 +435,6 @@ list(
 
 dat_pc_tmp <- dat_pc %>% 
   filter(
-    trial != "DiSerio 1989"
   )
 
 ### Preventive therapy ####
@@ -529,216 +529,320 @@ lorenzi_plot(dat = LP_dat_age,
              lowl = 0,
              upl = 50)
 
-#Female
-female <- Calc_np(PC[, c("trial", "treatment", "n", "female_r", "female_p")] %>% rename(N = n), an_only = T)
+## Female ####
+female <- dat_pc_tmp %>% 
+  select(
+    trial,
+    treatment,
+    N = n,
+    female_r,
+    female_p
+  ) %>% 
+  as.data.frame() %>% 
+  Calc_np(an_only = T)
 
-LP_dat_female <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                       baseline.vars = female["female_p"])
+LP_dat_female <- prepare.baseline.data(
+  id.var = dat_pc_tmp$trial, 
+  trt.var = dat_pc_tmp$focus_tr, 
+  n.var = dat_pc_tmp$n,
+  baseline.vars = female["female_p"]
+)
 names(LP_dat_female)[3] <- "var"
 
 lorenzi_plot(dat = LP_dat_female,
-             order_dat = tri_ord,
+             # order_dat = tri_ord,
              axis_lab = "Female (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Sex.png"),
+             out_path = paste0(out_dir, "Lorenzi plots/Lorenzi plot - Sex.png"),
              stacked = T,
              single = T,
              rmv_leg = T)
 
-#Ethnicity
-ethnic <- Calc_np(PC[, c("trial", "treatment", "n", "white_r", "white_p", "black_r", "black_p", "asian_r", 
-                         "asian_p", "raceother_r", "raceother_p")] %>% rename(N = n), an_only = T)
+# #Ethnicity
+# ethnic <- Calc_np(PC[, c("trial", "treatment", "n", "white_r", "white_p", "black_r", "black_p", "asian_r", 
+#                          "asian_p", "raceother_r", "raceother_p")] %>% rename(N = n), an_only = T)
+# 
+# 
+# LP_dat_ET <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                    baseline.vars = ethnic[,grepl("_p", names(ethnic))]) %>%
+#   rename(`White` = white_p, `Black` = black_p, `Asian` = asian_p, `Other` = raceother_p)
+# 
+# lorenzi_plot(dat = LP_dat_ET,
+#              order_dat = tri_ord,
+#              axis_lab = "Ethnicity (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Ethnicity.png"),
+#              stacked = T)
+# 
+# #Aura
+# aura <- Calc_np(PC[, c("trial", "treatment", "n", "aura_r", "aura_p")] %>% rename(N = n), an_only = T)
+# 
+# LP_dat_aura <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                      baseline.vars = aura["aura_p"])
+# names(LP_dat_aura)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_aura,
+#              order_dat = tri_ord,
+#              axis_lab = "History of aura (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Aura.png"),
+#              stacked = T,
+#              single = T,
+#              rmv_leg = T)
+# 
+# #Migraine severity
+# severity <- Calc_np(PC[, c("trial", "treatment", "sever_n", "severe_r", "severe_p", "moderate_r", "moderate_p", "mild_r", 
+#                            "mild_p")] %>% rename(N = sever_n), an_only = T)
+# 
+# 
+# LP_dat_SEV <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                     baseline.vars = severity[,grepl("_p", names(severity))]) %>%
+#   rename(`Severe` = severe_p, `Moderate` = moderate_p, `Mild` = mild_p)
+# 
+# lorenzi_plot(dat = LP_dat_SEV,
+#              order_dat = tri_ord,
+#              axis_lab = "Migraine severity (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Migraine severity.png"),
+#              stacked = T)
+# 
+# #Duration of migraine
+# DUR <- Prep_cont(dat = PC %>% mutate(dur_n = n, dur_median = dur_est, dur_mean = NA_real_,
+#                                      dur_sd = dur_disp, dur_se = NA_real_, dur_95l = NA_real_, dur_95u = NA_real_,
+#                                      dur_iqrl = NA_real_, dur_iqru = NA_real_), prefix = "dur", clean = F) %>%
+#   mutate(est_type_dur = "Mean") #Just 'hacking' this so it works properly for this function
+# 
+# LP_dat_dur <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n, baseline.vars = DUR[, 1, drop = F])
+# names(LP_dat_dur)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_dur,
+#              order_dat = tri_ord,
+#              axis_lab = "Duration of migraine (Hours)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Duration of migraine.png"),
+#              lowl = 0,
+#              upl = 40)
+# 
+# #Time from diagnosis
+# TFD <- Prep_cont(dat = PC %>% mutate(tfd_n = n, tfd_median = tfd_est, tfd_mean = NA_real_,
+#                                      tfd_sd = tfd_disp, tfd_se = NA_real_, tfd_95l = NA_real_, tfd_95u = NA_real_,
+#                                      tfd_iqrl = NA_real_, tfd_iqru = NA_real_), prefix = "tfd", clean = F) %>%
+#   mutate(est_type_tfd = "Mean") #Just 'hacking' this so it works properly for this function
+# 
+# LP_dat_tfd <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n, baseline.vars = TFD[, 1, drop = F])
+# names(LP_dat_tfd)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_tfd,
+#              order_dat = tri_ord,
+#              axis_lab = "Time from diagnosis (Years)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Time from diagnosis.png"),
+#              lowl = 0,
+#              upl = 30)
+# 
+# #Attacks per month
+# APM <- Prep_cont(dat = PC %>% mutate(attacks_n = n, attacks_median = attacks_est, attacks_mean = NA_real_,
+#                                      attacks_sd = attacks_disp, attacks_se = NA_real_, attacks_95l = NA_real_, attacks_95u = NA_real_,
+#                                      attacks_iqrl = NA_real_, attacks_iqru = NA_real_), prefix = "attacks", clean = F) %>%
+#   mutate(est_type_attacks = "Mean") #Just 'hacking' this so it works properly for this function
+# 
+# LP_dat_attacks <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n, baseline.vars = APM[, 1, drop = F])
+# names(LP_dat_attacks)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_attacks,
+#              order_dat = tri_ord,
+#              axis_lab = "Attacks per month",
+#              out_path = paste0(out_dir, "Lorenzi plot - Attacks per month.png"),
+#              lowl = 0,
+#              upl = 10,
+#              breaks = 1)
+# 
+# #Symptoms - nausea
+# sympnausea <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympnausea_r", "sympnausea_p")] %>% rename(N = symp_n), an_only = T)
+# 
+# LP_dat_sympnausea <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                            baseline.vars = sympnausea["sympnausea_p"])
+# names(LP_dat_sympnausea)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_sympnausea,
+#              order_dat = tri_ord,
+#              axis_lab = "Symptoms associated with migraine - nausea (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Nausea symptoms.png"),
+#              stacked = T,
+#              single = T,
+#              rmv_leg = T)
+# 
+# #Symptoms - Vomiting
+# sympvomit <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympvomit_r", "sympvomit_p")] %>% rename(N = symp_n), an_only = T)
+# 
+# LP_dat_sympvomit <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                           baseline.vars = sympvomit["sympvomit_p"])
+# names(LP_dat_sympvomit)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_sympvomit,
+#              order_dat = tri_ord,
+#              axis_lab = "Symptoms associated with migraine - vomiting (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Vomiting symptoms.png"),
+#              stacked = T,
+#              single = T,
+#              rmv_leg = T)
+# 
+# #Symptoms - phonophobia
+# sympphono <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympphono_r", "sympphono_p")] %>% rename(N = symp_n), an_only = T)
+# 
+# LP_dat_sympphono <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                           baseline.vars = sympphono["sympphono_p"])
+# names(LP_dat_sympphono)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_sympphono,
+#              order_dat = tri_ord,
+#              axis_lab = "Symptoms associated with migraine - phonophobia (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Phonophobia symptoms.png"),
+#              stacked = T,
+#              single = T,
+#              rmv_leg = T)
+# 
+# #Symptoms - photophobia
+# sympphoto <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympphoto_r", "sympphoto_p")] %>% rename(N = symp_n), an_only = T)
+# 
+# LP_dat_sympphoto <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                           baseline.vars = sympphoto["sympphoto_p"])
+# names(LP_dat_sympphoto)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_sympphoto,
+#              order_dat = tri_ord,
+#              axis_lab = "Symptoms associated with migraine - photophobia (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Photophobia symptoms.png"),
+#              stacked = T,
+#              single = T,
+#              rmv_leg = T)
+# 
+# #Symptoms - none
+# sympnone <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympnone_r", "sympnone_p")] %>% rename(N = symp_n), an_only = T)
+# 
+# LP_dat_sympnone <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                          baseline.vars = sympnone["sympnone_p"])
+# names(LP_dat_sympnone)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_sympnone,
+#              order_dat = tri_ord,
+#              axis_lab = "Symptoms associated with migraine - none (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - No symptoms.png"),
+#              stacked = T,
+#              single = T,
+#              rmv_leg = T)
+# 
+# #Most bothersome symptom
+# mbs <- Calc_np(PC[, c("trial", "treatment", "mbs_n", "mbsnausea_r", "mbsnausea_p", "mbsphono_r", "mbsphono_p", "mbsphoto_r", 
+#                       "mbsphoto_p")] %>% rename(N = mbs_n), an_only = T)
+# 
+# LP_dat_MBS <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
+#                                     baseline.vars = mbs[,grepl("_p", names(mbs))]) %>%
+#   rename(`Nausea` = mbsnausea_p, `Phonophobia` = mbsphono_p, `Photophobia` = mbsphoto_p)
+# 
+# lorenzi_plot(dat = LP_dat_MBS,
+#              order_dat = tri_ord,
+#              axis_lab = "Most bothersome symptom (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - MBS.png"),
+#              stacked = T)
+# 
+# #Redosing (we read this in from a separate file)
+# redosing <- data.frame(read_xlsx(paste0(dat_dir, "combined redosing data.xlsx"), sheet = "Arm level"), stringsAsFactors = FALSE)
+# rds <- Calc_np(redosing[, c("trial", "treatment", "n", "rds_r", "rds_p")] %>% rename(N = n), an_only = T)
+# 
+# LP_dat_redosing <- prepare.baseline.data(id.var = redosing$trial, trt.var = redosing$node, n.var = redosing$n,
+#                                          baseline.vars = rds["rds_p"])
+# names(LP_dat_redosing)[3] <- "var"
+# 
+# lorenzi_plot(dat = LP_dat_redosing,
+#              order_dat = tri_ord,
+#              axis_lab = "Redosed with trial drug (%)",
+#              out_path = paste0(out_dir, "Lorenzi plot - Redosing.png"),
+#              stacked = T,
+#              single = T,
+#              rmv_leg = T)
 
 
-LP_dat_ET <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                   baseline.vars = ethnic[,grepl("_p", names(ethnic))]) %>%
-  rename(`White` = white_p, `Black` = black_p, `Asian` = asian_p, `Other` = raceother_p)
+## Constructing networks ####
 
-lorenzi_plot(dat = LP_dat_ET,
-             order_dat = tri_ord,
-             axis_lab = "Ethnicity (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Ethnicity.png"),
-             stacked = T)
-
-#Aura
-aura <- Calc_np(PC[, c("trial", "treatment", "n", "aura_r", "aura_p")] %>% rename(N = n), an_only = T)
-
-LP_dat_aura <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                     baseline.vars = aura["aura_p"])
-names(LP_dat_aura)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_aura,
-             order_dat = tri_ord,
-             axis_lab = "History of aura (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Aura.png"),
-             stacked = T,
-             single = T,
-             rmv_leg = T)
-
-#Migraine severity
-severity <- Calc_np(PC[, c("trial", "treatment", "sever_n", "severe_r", "severe_p", "moderate_r", "moderate_p", "mild_r", 
-                           "mild_p")] %>% rename(N = sever_n), an_only = T)
+col_mat  <- data.frame(
+  rbind(c("Placebo"  , "#000000"),
+        c("RIM 75"   , "black"),
+        c("DHE"   , "#552583"),
+        # c("Placebo+0.2% DDM"  , "#552583"),
+        c("Rimegepant"  , "#552583"),
+        c("Sumatriptan" , "#fdb927"),
+        c("Sumatriptan (oral) + Placebo"  , "#fdb927"),
+        c("Sumatriptan (spray) + Placebo"  , "#fdb927"),
+        c("Sumatriptan + Permeation Enhancer"  , "#fdb927"),
+        c("Sumatriptan 10mg"  , "#fdb927"),
+        c("Sumatriptan 1mg"  , "#fdb927"),
+        c("Sumatriptan 20mg"  , "#fdb927"),
+        c("Sumatriptan 40mg"  , "#fdb927"),
+        c("Sumatriptan 5mg"  , "#fdb927"),
+        c("Sumatriptan+ 0.2% DDM"  , "#fdb927"),
+        c("Zolmitriptan"  , "#fdb927"),
+        c("rimegepant"  , "#fdb927"),
+        c("sumatriptan"  , "#fdb927"),
+        c("ubrogepant"  , "#fdb927"),
+        c("zavegepant 10mg"  , "#fdb927")
+        ),
+  stringsAsFactors = F)
+names(col_mat) <- c("Treatment", "col")
 
 
-LP_dat_SEV <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                    baseline.vars = severity[,grepl("_p", names(severity))]) %>%
-  rename(`Severe` = severe_p, `Moderate` = moderate_p, `Mild` = mild_p)
+tris <- CO_clean[, c("Trial", "Treatment")]
+tris$x <- tris$y <- 0
 
-lorenzi_plot(dat = LP_dat_SEV,
-             order_dat = tri_ord,
-             axis_lab = "Migraine severity (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Migraine severity.png"),
-             stacked = T)
+tri_lab <- tris[!is.na(tris$x), c("Trial", "x", "y")]
+tri_lab <- tri_lab[!duplicated(tri_lab),]
 
-#Duration of migraine
-DUR <- Prep_cont(dat = PC %>% mutate(dur_n = n, dur_median = dur_est, dur_mean = NA_real_,
-                                     dur_sd = dur_disp, dur_se = NA_real_, dur_95l = NA_real_, dur_95u = NA_real_,
-                                     dur_iqrl = NA_real_, dur_iqru = NA_real_), prefix = "dur", clean = F) %>%
-  mutate(est_type_dur = "Mean") #Just 'hacking' this so it works properly for this function
+# #RIM
+# tri_lab$x[tri_lab$Trial == "BHV3000-301"] <- 0
+# tri_lab$y[tri_lab$Trial == "BHV3000-301"] <- 4.0
+# tri_lab$x[tri_lab$Trial == "BHV3000-302"] <- 0
+# tri_lab$y[tri_lab$Trial == "BHV3000-302"] <- 3.4
+# tri_lab$x[tri_lab$Trial == "BHV3000-303"] <- 0
+# tri_lab$y[tri_lab$Trial == "BHV3000-303"] <- 2.8
+# tri_lab$x[tri_lab$Trial == "BHV3000-310"] <- 0
+# tri_lab$y[tri_lab$Trial == "BHV3000-310"] <- 2.2
+# tri_lab$x[tri_lab$Trial == "Marcus 2014"] <- 0
+# tri_lab$y[tri_lab$Trial == "Marcus 2014"] <- 1.6
+# 
+# #LAS
+# tri_lab$x[tri_lab$Trial == "SPARTAN"] <- 2.7
+# tri_lab$y[tri_lab$Trial == "SPARTAN"] <- 0.3
+# tri_lab$x[tri_lab$Trial == "MONONOFU"] <- 2.7
+# tri_lab$y[tri_lab$Trial == "MONONOFU"] <- -0.3
+# tri_lab$x[tri_lab$Trial == "COL MIG-202"] <- 2.7
+# tri_lab$y[tri_lab$Trial == "COL MIG-202"] <- -0.9
+# 
+# tri_lab$x[tri_lab$Trial == "SAMURAI"] <- 2.6
+# tri_lab$y[tri_lab$Trial == "SAMURAI"] <- -1.7
+# tri_lab$x[tri_lab$Trial == "CENTURION"] <- 2.6
+# tri_lab$y[tri_lab$Trial == "CENTURION"] <- -2.3
+# 
+# #UBRO
+# tri_lab$x[tri_lab$Trial == "ACHIEVE I"] <- -2.6
+# tri_lab$y[tri_lab$Trial == "ACHIEVE I"] <- -1.9
+# tri_lab$x[tri_lab$Trial == "ACHIEVE II"] <- -3.0
+# tri_lab$y[tri_lab$Trial == "ACHIEVE II"] <- 1.1
+# tri_lab$x[tri_lab$Trial == "MK-1602-006"] <- -2.8
+# tri_lab$y[tri_lab$Trial == "MK-1602-006"] <- -0.50
 
-LP_dat_dur <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n, baseline.vars = DUR[, 1, drop = F])
-names(LP_dat_dur)[3] <- "var"
+## Pain freedom ####
 
-lorenzi_plot(dat = LP_dat_dur,
-             order_dat = tri_ord,
-             axis_lab = "Duration of migraine (Hours)",
-             out_path = paste0(out_dir, "Lorenzi plot - Duration of migraine.png"),
-             lowl = 0,
-             upl = 40)
+outcomes <- c(
+  "Pain freedom 60 mins", "Pain freedom 90 mins", "Pain freedom 2 hrs", "Pain freedom 24 hrs", "Pain freedom 48 hrs"
+  )
 
-#Time from diagnosis
-TFD <- Prep_cont(dat = PC %>% mutate(tfd_n = n, tfd_median = tfd_est, tfd_mean = NA_real_,
-                                     tfd_sd = tfd_disp, tfd_se = NA_real_, tfd_95l = NA_real_, tfd_95u = NA_real_,
-                                     tfd_iqrl = NA_real_, tfd_iqru = NA_real_), prefix = "tfd", clean = F) %>%
-  mutate(est_type_tfd = "Mean") #Just 'hacking' this so it works properly for this function
+report_trt <- CO_clean[, c("Treatment", outcomes)] %>%
+  group_by(Treatment) %>%
+  summarise(across(all_of(outcomes), ~sum(.x != "--"))) #%>%
+#mutate(across(all_of(outcomes), ~ifelse(.x == 0, NA_real_, .x)))
 
-LP_dat_tfd <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n, baseline.vars = TFD[, 1, drop = F])
-names(LP_dat_tfd)[3] <- "var"
+tri_chars <- CO_clean[, c("Trial", "Treatment", outcomes)] %>%
+  filter(Treatment == "Placebo") %>%
+  mutate(across(all_of(outcomes), ~ifelse(.x == "--", "NR", gsub("\\)", "", gsub(".*\\(", "", .x))))) %>%
+  select(-Treatment)
 
-lorenzi_plot(dat = LP_dat_tfd,
-             order_dat = tri_ord,
-             axis_lab = "Time from diagnosis (Years)",
-             out_path = paste0(out_dir, "Lorenzi plot - Time from diagnosis.png"),
-             lowl = 0,
-             upl = 30)
+create_network(outcomes = outcomes,
+               col_mat = col_mat,
+               report_trt = report_trt,
+               tris = tris,
+               tri_lab = tri_lab)
 
-#Attacks per month
-APM <- Prep_cont(dat = PC %>% mutate(attacks_n = n, attacks_median = attacks_est, attacks_mean = NA_real_,
-                                     attacks_sd = attacks_disp, attacks_se = NA_real_, attacks_95l = NA_real_, attacks_95u = NA_real_,
-                                     attacks_iqrl = NA_real_, attacks_iqru = NA_real_), prefix = "attacks", clean = F) %>%
-  mutate(est_type_attacks = "Mean") #Just 'hacking' this so it works properly for this function
-
-LP_dat_attacks <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n, baseline.vars = APM[, 1, drop = F])
-names(LP_dat_attacks)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_attacks,
-             order_dat = tri_ord,
-             axis_lab = "Attacks per month",
-             out_path = paste0(out_dir, "Lorenzi plot - Attacks per month.png"),
-             lowl = 0,
-             upl = 10,
-             breaks = 1)
-
-#Symptoms - nausea
-sympnausea <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympnausea_r", "sympnausea_p")] %>% rename(N = symp_n), an_only = T)
-
-LP_dat_sympnausea <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                           baseline.vars = sympnausea["sympnausea_p"])
-names(LP_dat_sympnausea)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_sympnausea,
-             order_dat = tri_ord,
-             axis_lab = "Symptoms associated with migraine - nausea (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Nausea symptoms.png"),
-             stacked = T,
-             single = T,
-             rmv_leg = T)
-
-#Symptoms - Vomiting
-sympvomit <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympvomit_r", "sympvomit_p")] %>% rename(N = symp_n), an_only = T)
-
-LP_dat_sympvomit <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                          baseline.vars = sympvomit["sympvomit_p"])
-names(LP_dat_sympvomit)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_sympvomit,
-             order_dat = tri_ord,
-             axis_lab = "Symptoms associated with migraine - vomiting (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Vomiting symptoms.png"),
-             stacked = T,
-             single = T,
-             rmv_leg = T)
-
-#Symptoms - phonophobia
-sympphono <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympphono_r", "sympphono_p")] %>% rename(N = symp_n), an_only = T)
-
-LP_dat_sympphono <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                          baseline.vars = sympphono["sympphono_p"])
-names(LP_dat_sympphono)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_sympphono,
-             order_dat = tri_ord,
-             axis_lab = "Symptoms associated with migraine - phonophobia (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Phonophobia symptoms.png"),
-             stacked = T,
-             single = T,
-             rmv_leg = T)
-
-#Symptoms - photophobia
-sympphoto <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympphoto_r", "sympphoto_p")] %>% rename(N = symp_n), an_only = T)
-
-LP_dat_sympphoto <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                          baseline.vars = sympphoto["sympphoto_p"])
-names(LP_dat_sympphoto)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_sympphoto,
-             order_dat = tri_ord,
-             axis_lab = "Symptoms associated with migraine - photophobia (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Photophobia symptoms.png"),
-             stacked = T,
-             single = T,
-             rmv_leg = T)
-
-#Symptoms - none
-sympnone <- Calc_np(PC[, c("trial", "treatment", "symp_n", "sympnone_r", "sympnone_p")] %>% rename(N = symp_n), an_only = T)
-
-LP_dat_sympnone <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                         baseline.vars = sympnone["sympnone_p"])
-names(LP_dat_sympnone)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_sympnone,
-             order_dat = tri_ord,
-             axis_lab = "Symptoms associated with migraine - none (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - No symptoms.png"),
-             stacked = T,
-             single = T,
-             rmv_leg = T)
-
-#Most bothersome symptom
-mbs <- Calc_np(PC[, c("trial", "treatment", "mbs_n", "mbsnausea_r", "mbsnausea_p", "mbsphono_r", "mbsphono_p", "mbsphoto_r", 
-                      "mbsphoto_p")] %>% rename(N = mbs_n), an_only = T)
-
-LP_dat_MBS <- prepare.baseline.data(id.var = PC$trial, trt.var = PC$node, n.var = PC$n,
-                                    baseline.vars = mbs[,grepl("_p", names(mbs))]) %>%
-  rename(`Nausea` = mbsnausea_p, `Phonophobia` = mbsphono_p, `Photophobia` = mbsphoto_p)
-
-lorenzi_plot(dat = LP_dat_MBS,
-             order_dat = tri_ord,
-             axis_lab = "Most bothersome symptom (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - MBS.png"),
-             stacked = T)
-
-#Redosing (we read this in from a separate file)
-redosing <- data.frame(read_xlsx(paste0(dat_dir, "combined redosing data.xlsx"), sheet = "Arm level"), stringsAsFactors = FALSE)
-rds <- Calc_np(redosing[, c("trial", "treatment", "n", "rds_r", "rds_p")] %>% rename(N = n), an_only = T)
-
-LP_dat_redosing <- prepare.baseline.data(id.var = redosing$trial, trt.var = redosing$node, n.var = redosing$n,
-                                         baseline.vars = rds["rds_p"])
-names(LP_dat_redosing)[3] <- "var"
-
-lorenzi_plot(dat = LP_dat_redosing,
-             order_dat = tri_ord,
-             axis_lab = "Redosed with trial drug (%)",
-             out_path = paste0(out_dir, "Lorenzi plot - Redosing.png"),
-             stacked = T,
-             single = T,
-             rmv_leg = T)
